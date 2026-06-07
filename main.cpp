@@ -20,6 +20,14 @@ void printPath(const vector<int>& parent, int v, const vector<string>& name) {
     // TODO:
     // 使用遞迴或 stack 印出從起點到 v 的路徑
     // 例如：S -> B -> E -> T
+    if (parent[v] == -1) {
+        cout << name[v];
+        return;
+    }
+    // 遞迴尋找前驅節點，確保輸出的順序是從起點開始
+    printPath(parent, parent[v], name);
+    // 順向印出當前節點
+    cout << " -> " << name[v];
 }
 
 // ==============================
@@ -38,7 +46,7 @@ void shortestPathDP(const vector<vector<Edge>>& graph,
 
     // TODO:
     // Step 1. 初始化
-    // dist[source] = 0;
+    dist[source] = 0;
 
     // TODO:
     // Step 2. 依照 topo 順序做 DP
@@ -48,6 +56,19 @@ void shortestPathDP(const vector<vector<Edge>>& graph,
     //      若 dist[u] + weight < dist[v]
     //         更新 dist[v]
     //         parent[v] = u
+
+    for (int u : topo) {
+        if (dist[u] != INF) {
+            for (const auto& edge : graph[u]) {
+                int v = edge.to;
+                int weight = edge.weight;
+                if (dist[u] + weight < dist[v]) {
+                    dist[v] = dist[u] + weight;
+                    parent[v] = u;
+                }
+            }
+        }
+    }
 
     cout << "Shortest Path DP\n";
     cout << "Distance = ";
@@ -59,7 +80,7 @@ void shortestPathDP(const vector<vector<Edge>>& graph,
         cout << dist[target] << "\n";
         cout << "Path: ";
         // TODO:
-        // 呼叫 printPath(parent, target, name);
+        printPath(parent, target, name);
         cout << "\n\n";
     }
 }
@@ -81,7 +102,7 @@ void longestPathDP(const vector<vector<Edge>>& graph,
 
     // TODO:
     // Step 1. 初始化
-    // dist[source] = 0;
+    dist[source] = 0;
 
     // TODO:
     // Step 2. 依照 topo 順序做 DP
@@ -92,6 +113,19 @@ void longestPathDP(const vector<vector<Edge>>& graph,
     //         更新 dist[v]
     //         parent[v] = u
 
+    for (int u : topo) {
+        if (dist[u] != NEG_INF) {
+            for (const auto& edge : graph[u]) {
+                int v = edge.to;
+                int weight = edge.weight;
+                if (dist[u] + weight > dist[v]) {
+                    dist[v] = dist[u] + weight;
+                    parent[v] = u;
+                }
+            }
+        }
+    }
+
     cout << "Longest Path DP\n";
     cout << "Distance = ";
 
@@ -101,8 +135,8 @@ void longestPathDP(const vector<vector<Edge>>& graph,
     } else {
         cout << dist[target] << "\n";
         cout << "Path: ";
-        // TODO:
-        // 呼叫 printPath(parent, target, name);
+        // TODO:呼叫 
+        printPath(parent, target, name);
         cout << "\n\n";
     }
 }
@@ -123,7 +157,7 @@ void maxProductPathDP(const vector<vector<Edge>>& graph,
 
     // TODO:
     // Step 1. 初始化
-    // prod[source] = 1;
+    prod[source] = 1;
     // 因為乘積的起始值應為 1
 
     // TODO:
@@ -136,6 +170,20 @@ void maxProductPathDP(const vector<vector<Edge>>& graph,
     //         更新 prod[v]
     //         parent[v] = u
 
+    for (int u : topo) {
+        if (prod[u] > 0) {
+            for (const auto& edge : graph[u]) {
+                int v = edge.to;
+                int weight = edge.weight;
+                long long candidate = prod[u] * weight;
+                if (candidate > prod[v]) {
+                    prod[v] = candidate;
+                    parent[v] = u;
+                }
+            }
+        }
+    }
+
     cout << "Maximum Product Path DP\n";
     cout << "Product = ";
 
@@ -146,7 +194,7 @@ void maxProductPathDP(const vector<vector<Edge>>& graph,
         cout << prod[target] << "\n";
         cout << "Path: ";
         // TODO:
-        // 呼叫 printPath(parent, target, name);
+        printPath(parent, target, name);
         cout << "\n\n";
     }
 }
@@ -164,24 +212,30 @@ int main() {
 
     // TODO:
     // 依照題目加邊
-    //
-    // S -> A (6)
-    // S -> B (5)
-    // S -> C (7)
-    // S -> D (4)
-    //
-    // A -> E (3)
-    // A -> F (10)
-    //
-    // B -> E (2)
-    // B -> G (2)
-    //
+    // S -> A (6), S -> B (5), S -> C (7), S -> D (4)
+    graph[0].push_back({1, 6});
+    graph[0].push_back({2, 5});
+    graph[0].push_back({3, 7});
+    graph[0].push_back({4, 4});
+
+    // A -> E (3), A -> F (10)
+    graph[1].push_back({5, 3});
+    graph[1].push_back({6, 10});
+
+    // B -> E (2), B -> G (2)
+    graph[2].push_back({5, 2});
+    graph[2].push_back({7, 2});
+
     // C -> F (1)
+    graph[3].push_back({6, 1});
+
     // D -> G (3)
-    //
-    // E -> T (2)
-    // F -> T (9)
-    // G -> T (5)
+    graph[4].push_back({7, 3});
+
+    // E -> T (2), F -> T (9), G -> T (5)
+    graph[5].push_back({8, 2});
+    graph[6].push_back({8, 9});
+    graph[7].push_back({8, 5});
 
     // 這張圖已經是 DAG，可直接手動給拓樸順序
     vector<int> topo = {
